@@ -1,34 +1,57 @@
 import styles from "./Post.module.css";
 import { Comment } from "./comment";
 import { Avatar } from "./avatar";
+import { format, formatDistanceToNow } from "date-fns";
+import ptBR from "date-fns/locale/pt-BR";
+import { useState } from "react";
 
-const coments = [1, 2, 3];
+export function Post({ author, publishedAt, content }) {
+  const [comments, setComments] = useState(["Que post legal!!"]);
+  const [newCommentText, setNewCommentText] = useState("");
+  const publishedDateformatted = format(
+    publishedAt,
+    "d 'de' LLLL 'às' HH:mm'h'",
+    {
+      locale: ptBR,
+    }
+  );
 
-export function Post(props) {
-  const publishedDateformatted = new Intl.DateTimeFormat("pt-br", {
-    day: "2-digit",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(props.publishedAt);
+  const publishedDateRelaticeToNow = formatDistanceToNow(publishedAt, {
+    locale: ptBR,
+    addSuffix: true,
+  });
+
+  function handleNewCommentChange() {
+    setNewCommentText(event.target.value);
+  }
+
+  function handleCreateNewComment() {
+    event.preventDefault();
+    setComments([...comments, newCommentText]);
+    setNewCommentText("");
+  }
+
   return (
     <article className={styles.post}>
       <header>
         <div className={styles.author}>
-          <Avatar src={props.author.avatarUrl} />
+          <Avatar src={author.avatarUrl} />
 
           <div className={styles.authorInfo}>
-            <strong>{props.author.name}</strong>
-            <span>{props.author.role}</span>
+            <strong>{author.name}</strong>
+            <span>{author.role}</span>
           </div>
         </div>
 
-        <time title={publishedDateformatted} dateTime="">
-          {publishedDateformatted}
+        <time
+          title={publishedDateformatted}
+          dateTime={publishedAt.toISOString()}
+        >
+          {publishedDateRelaticeToNow}
         </time>
       </header>
       <div className={styles.content}>
-        {props.content.map((line) => {
+        {content.map((line) => {
           if (line.type === "paragraph") {
             return <p>{line.content}</p>;
           } else {
@@ -41,16 +64,21 @@ export function Post(props) {
         })}
       </div>
 
-      <form className={styles.commentForm}>
+      <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
         <strong>Deixe seu feedback</strong>
-        <textarea placeholder="Deixe um comentario" />
+        <textarea
+          name="comment"
+          placeholder="Deixe um comentario"
+          value={newCommentText}
+          onChange={handleNewCommentChange}
+        />
         <footer>
           <button type="submit">Vá lá</button>
         </footer>
       </form>
       <div className={styles.commentList}>
-        {coments.map((coment) => {
-          return <Comment />;
+        {comments.map((coment) => {
+          return <Comment content={coment} />;
         })}
       </div>
     </article>
